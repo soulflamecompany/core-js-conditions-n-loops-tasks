@@ -449,8 +449,36 @@ function sortByAsc(arr) {
  *  '012345', 3 => '024135' => '043215' => '031425'
  *  'qwerty', 3 => 'qetwry' => 'qtrewy' => 'qrwtey'
  */
-function shuffleChar(/* str, iterations */) {
-  throw new Error('Not implemented');
+function shuffleChar(str, iterations) {
+  const n = str.length;
+
+  // Reduce iterations using repetition cycles
+  const effectiveIterations = iterations % n;
+  if (effectiveIterations === 0) {
+    return str; // No changes needed after complete cyclic iteration
+  }
+
+  let currentString = str;
+
+  // Perform shuffling for `effectiveIterations`
+  for (let it = 0; it < effectiveIterations; it += 1) {
+    let evenChars = ''; // Characters at even indices
+    let oddChars = ''; // Characters at odd indices
+
+    // Split characters into `evenChars` and `oddChars`
+    for (let i = 0; i < currentString.length; i += 1) {
+      if (i % 2 === 0) {
+        evenChars += currentString[i];
+      } else {
+        oddChars += currentString[i];
+      }
+    }
+
+    // Concatenate even and odd parts for the next iteration
+    currentString = evenChars + oddChars;
+  }
+
+  return currentString;
 }
 
 /**
@@ -470,8 +498,59 @@ function shuffleChar(/* str, iterations */) {
  * @param {number} number The source number
  * @returns {number} The nearest larger number, or original number if none exists.
  */
-function getNearestBigger(/* number */) {
-  throw new Error('Not implemented');
+function getNearestBigger(number) {
+  // Step 1: Extract digits into an array
+  const digits = [];
+  let temp = number;
+
+  while (temp > 0) {
+    digits.push(temp % 10);
+    temp = Math.floor(temp / 10);
+  }
+
+  digits.reverse(); // Digits are extracted in reverse order
+
+  // Step 2: Find the pivot
+  let i = digits.length - 2;
+  while (i >= 0 && digits[i] >= digits[i + 1]) {
+    i -= 1;
+  }
+
+  if (i < 0) {
+    // The number is in descending order, so no larger permutation exists
+    return number;
+  }
+
+  // Step 3: Find the smallest larger digit to the right of pivot
+  let j = digits.length - 1;
+  while (digits[j] <= digits[i]) {
+    j -= 1;
+  }
+
+  // Step 4: Swap pivot with the smallest larger digit
+  const tempDigit = digits[i];
+  digits[i] = digits[j];
+  digits[j] = tempDigit;
+
+  // Step 5: Sort the digits to the right of the pivot in ascending order
+  let left = i + 1;
+  let right = digits.length - 1;
+
+  while (left < right) {
+    const swapTemp = digits[left];
+    digits[left] = digits[right];
+    digits[right] = swapTemp;
+    left -= 1;
+    right -= 1;
+  }
+
+  // Step 6: Reconstruct the number from digits
+  let result = 0;
+  for (let k = 0; k < digits.length; k += 1) {
+    result = result * 10 + digits[k];
+  }
+
+  return result;
 }
 
 module.exports = {
