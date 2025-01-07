@@ -418,18 +418,35 @@ function rotateMatrix(matrix) {
  *  [2, 9, 5, 9]    => [2, 5, 9, 9]
  *  [-2, 9, 5, -3]  => [-3, -2, 5, 9]
  */
-function sortByAsc(arr) {
-  const cloneArr = arr;
-  for (let i = 0; i < cloneArr.length; i += 1) {
-    const currentItem = cloneArr[i];
-    let index = i;
-    while (index !== 0 && cloneArr[index - 1] > currentItem) {
-      cloneArr[index] = cloneArr[index - 1];
-      index -= 1;
+function sortByAsc(array) {
+  const arr = array;
+
+  function quickSort(start, end) {
+    if (start >= end) return;
+
+    const pivot = arr[end];
+    let partitionIndex = start;
+
+    for (let i = start; i < end; i += 1) {
+      if (arr[i] < pivot) {
+        const temp = arr[i];
+        arr[i] = arr[partitionIndex];
+        arr[partitionIndex] = temp;
+        partitionIndex += 1;
+      }
     }
-    cloneArr[index] = currentItem;
+
+    const temp = arr[partitionIndex];
+    arr[partitionIndex] = arr[end];
+    arr[end] = temp;
+
+    quickSort(start, partitionIndex - 1);
+    quickSort(partitionIndex + 1, end);
   }
-  return cloneArr;
+
+  quickSort(0, arr.length - 1);
+
+  return arr;
 }
 
 /**
@@ -449,36 +466,63 @@ function sortByAsc(arr) {
  *  '012345', 3 => '024135' => '043215' => '031425'
  *  'qwerty', 3 => 'qetwry' => 'qtrewy' => 'qrwtey'
  */
-function shuffleChar(str, iterations) {
-  const n = str.length;
+function findCyclePeriod(str) {
+  const { length } = str;
 
-  // Reduce iterations using repetition cycles
-  const effectiveIterations = iterations % n;
-  if (effectiveIterations === 0) {
-    return str; // No changes needed after complete cyclic iteration
-  }
+  const seen = new Set();
+  let current = str;
+  let count = 0;
 
-  let currentString = str;
+  while (!seen.has(current)) {
+    seen.add(current);
+    count += 1;
 
-  // Perform shuffling for `effectiveIterations`
-  for (let it = 0; it < effectiveIterations; it += 1) {
-    let evenChars = ''; // Characters at even indices
-    let oddChars = ''; // Characters at odd indices
+    let evenPart = '';
+    let oddPart = '';
 
-    // Split characters into `evenChars` and `oddChars`
-    for (let i = 0; i < currentString.length; i += 1) {
+    for (let i = 0; i < length; i += 1) {
       if (i % 2 === 0) {
-        evenChars += currentString[i];
+        evenPart += current[i];
       } else {
-        oddChars += currentString[i];
+        oddPart += current[i];
       }
     }
 
-    // Concatenate even and odd parts for the next iteration
-    currentString = evenChars + oddChars;
+    current = evenPart + oddPart;
+
+    if (current === str) {
+      return count;
+    }
   }
 
-  return currentString;
+  return count;
+}
+function shuffleChar(str, iterations) {
+  const { length } = str;
+  if (length <= 1) {
+    return str;
+  }
+
+  const period = findCyclePeriod(str);
+  const effectiveIterations = iterations % period;
+
+  let current = str;
+  for (let iter = 0; iter < effectiveIterations; iter += 1) {
+    let evenPart = '';
+    let oddPart = '';
+
+    for (let i = 0; i < length; i += 1) {
+      if (i % 2 === 0) {
+        evenPart += current[i];
+      } else {
+        oddPart += current[i];
+      }
+    }
+
+    current = evenPart + oddPart;
+  }
+
+  return current;
 }
 
 /**
@@ -499,7 +543,6 @@ function shuffleChar(str, iterations) {
  * @returns {number} The nearest larger number, or original number if none exists.
  */
 function getNearestBigger(number) {
-  // Step 1: Extract digits into an array
   const digits = [];
   let temp = number;
 
@@ -508,31 +551,26 @@ function getNearestBigger(number) {
     temp = Math.floor(temp / 10);
   }
 
-  digits.reverse(); // Digits are extracted in reverse order
+  digits.reverse();
 
-  // Step 2: Find the pivot
   let i = digits.length - 2;
   while (i >= 0 && digits[i] >= digits[i + 1]) {
     i -= 1;
   }
 
   if (i < 0) {
-    // The number is in descending order, so no larger permutation exists
     return number;
   }
 
-  // Step 3: Find the smallest larger digit to the right of pivot
   let j = digits.length - 1;
   while (digits[j] <= digits[i]) {
     j -= 1;
   }
 
-  // Step 4: Swap pivot with the smallest larger digit
   const tempDigit = digits[i];
   digits[i] = digits[j];
   digits[j] = tempDigit;
 
-  // Step 5: Sort the digits to the right of the pivot in ascending order
   let left = i + 1;
   let right = digits.length - 1;
 
@@ -540,11 +578,10 @@ function getNearestBigger(number) {
     const swapTemp = digits[left];
     digits[left] = digits[right];
     digits[right] = swapTemp;
-    left -= 1;
+    left += 1;
     right -= 1;
   }
 
-  // Step 6: Reconstruct the number from digits
   let result = 0;
   for (let k = 0; k < digits.length; k += 1) {
     result = result * 10 + digits[k];
